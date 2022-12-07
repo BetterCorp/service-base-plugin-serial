@@ -1,0 +1,33 @@
+{
+  "name": "@bettercorp/service-base-plugin-serial",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "url": "https://github.com/BetterCorp/service-base-plugin-syslog"
+  },
+  "engines": {
+    "npm": ">=8.0.0",
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --config node_modules/@bettercorp/service-base/development/nodemon.json",
+    "start": "ts-node node_modules/@bettercorp/service-base/lib/cli.js"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "main": "lib/index.js",
+  "version": "1.0.0",
+  "bsb_project": true,
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "tslint": "^6.1.3",
+    "typescript": "^4.8.3"
+  },
+  "dependencies": {
+    "@bettercorp/service-base": "^8.1.2",
+    "@bettercorp/tools": "^2.1.16",
+    "@types/node": "^18.7.18",
+    "serialport": "^10.5.0"
+  }
+}
