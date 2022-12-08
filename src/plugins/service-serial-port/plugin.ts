@@ -21,6 +21,9 @@ export class Service extends ServicesBase<
   private _server!: SerialPort;
   private _lastUse: number = 0;
   private _lastUserTimer: NodeJS.Timer | null = null;
+  public override dispose(): void {
+    if (this._server.isOpen) this._server.close();
+  }
   public override async init(): Promise<void> {
     const self = this;
     await this.onEvent("writeMessage", async (data: string | Buffer) => {
