@@ -23,4 +23,7 @@ export class serialPort extends ServicesClient<
   async writeMessage(data: Buffer | string): Promise<void> {
     await this._plugin.emitEvent("writeMessage", data);
   }
+  async reconnect(): Promise<void> {
+    await this._plugin.emitEvent("reconnect");
+  }
 }
