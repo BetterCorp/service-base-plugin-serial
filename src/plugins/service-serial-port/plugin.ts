@@ -69,7 +69,7 @@ export class Service extends ServicesBase<
       await self.emitEvent("onMessage", messageBuffer ? value : dataAsText);
     });
     this._server.on("error", async (err) => {
-      awaitself.log.error(err);
+      await self.log.error(err);
     });
   }
   private async openSerial(): Promise<void> {
