@@ -23,6 +23,13 @@ export class Service extends ServicesBase<
     const self = this;
     await self.onReturnableEventSpecific(
       thisServerId,
+      "isConnected",
+      async () => {
+        return self._server.isOpen;
+      }
+    );
+    await self.onReturnableEventSpecific(
+      thisServerId,
       "reconnect",
       async () => {
         await self.log.info("Requested reconnect.");

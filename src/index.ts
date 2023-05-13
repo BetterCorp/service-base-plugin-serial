@@ -10,4 +10,5 @@ export interface SerialEvents extends ServiceCallable {
 export interface SerialEmitAndReturnEvents extends ServiceCallable {
   writeMessage(data: Buffer | string): Promise<void>;
   reconnect(): Promise<void>;
+  isConnected(): Promise<boolean>;
 }

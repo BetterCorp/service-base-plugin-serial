@@ -81,12 +81,22 @@ export class serialPort extends ServicesClient<
       data === undefined ? serverIdOrData : data
     );
   }
+
   async reconnect(): Promise<void>;
   async reconnect(serverId: string): Promise<void>;
   async reconnect(serverId?: string): Promise<void> {
     await this._plugin.emitEventAndReturnSpecific(
       serverId === undefined ? this._serverId : serverId,
       "reconnect"
+    );
+  }
+
+  async isConnected(): Promise<boolean>;
+  async isConnected(serverId: string): Promise<boolean>;
+  async isConnected(serverId?: string): Promise<boolean> {
+    return await this._plugin.emitEventAndReturnSpecific(
+      serverId === undefined ? this._serverId : serverId,
+      "isConnected"
     );
   }
 }
