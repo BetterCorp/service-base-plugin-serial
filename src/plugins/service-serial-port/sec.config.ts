@@ -1,6 +1,7 @@
 import { SecConfig } from "@bettercorp/service-base";
 
 export interface MyPluginConfig {
+  serverId: string | null; // Server ID: The ID of the server
   port: string; // Port: The port to bind too
   autoConnect: boolean; // Auto Connect: Connect and hold the connection option
   autoReConnect: boolean; // Auto re-Connect: When auto-connect is enabled, we'll try reconnect automatically if the connection closes/times out. If it failes, we'll throw a fatal
@@ -17,6 +18,8 @@ export class Config extends SecConfig<MyPluginConfig> {
     existingConfig: MyPluginConfig
   ): MyPluginConfig {
     return {
+      serverId:
+        existingConfig.serverId !== undefined ? existingConfig.serverId : null,
       port: existingConfig.port !== undefined ? existingConfig.port : "COM1",
       parity: existingConfig.parity,
       dataBits: existingConfig.dataBits,

@@ -1,20 +1,12 @@
 import { SerialPort } from "serialport";
 import { ServiceCallable, ServicesBase } from "@bettercorp/service-base";
 import { MyPluginConfig } from "./sec.config";
-
-export interface SerialEvents extends ServiceCallable {
-  onMessage(data: Buffer | string): Promise<void>;
-}
-
-export interface SerialEmitEvents extends ServiceCallable {
-  writeMessage(data: Buffer | string): Promise<void>;
-  reconnect(): Promise<void>;
-}
+import { SerialEvents, SerialEmitAndReturnEvents } from "../../index";
 
 export class Service extends ServicesBase<
-  SerialEmitEvents,
-  SerialEvents,
   ServiceCallable,
+  SerialEvents,
+  SerialEmitAndReturnEvents,
   ServiceCallable,
   ServiceCallable,
   MyPluginConfig
@@ -26,34 +18,44 @@ export class Service extends ServicesBase<
     if (this._server.isOpen) this._server.close();
   }
   public override async init(): Promise<void> {
+    const config = await this.getPluginConfig();
+    const thisServerId = config.serverId ?? "default";
     const self = this;
-    await this.onEvent("reconnect", async () => {
-      await self.log.info("Requested reconnect.");
-      if (self._server.isOpen) {
-        await self.log.info("Requested reconnect: closing");
-        self._server.close();
-        await self.log.info("Requested reconnect: re-opening");
-        await self.openSerial();
-        await self.log.info("Requested reconnect: complete");
+    await self.onReturnableEventSpecific(
+      thisServerId,
+      "reconnect",
+      async () => {
+        await self.log.info("Requested reconnect.");
+        if (self._server.isOpen) {
+          await self.log.info("Requested reconnect: closing");
+          self._server.close();
+          await self.log.info("Requested reconnect: re-opening");
+          await self.openSerial();
+          await self.log.info("Requested reconnect: complete");
+        }
       }
-    });
-    await this.onEvent("writeMessage", async (data: string | Buffer) => {
-      if (!self._server.isOpen) {
-        await self.openSerial();
+    );
+    await self.onReturnableEventSpecific(
+      thisServerId,
+      "writeMessage",
+      async (data: string | Buffer) => {
+        if (!self._server.isOpen) {
+          await self.openSerial();
+        }
+        self._server.write(data);
+        self._lastUse = new Date().getTime();
       }
-      self._server.write(data);
-      self._lastUse = new Date().getTime();
-    });
-    this._server = new SerialPort({
-      path: (await this.getPluginConfig()).port,
-      baudRate: (await this.getPluginConfig()).baudRate,
-      dataBits: (await this.getPluginConfig()).dataBits,
-      stopBits: (await this.getPluginConfig()).stopBits,
-      parity: (await this.getPluginConfig()).parity,
+    );
+    self._server = new SerialPort({
+      path: config.port,
+      baudRate: config.baudRate,
+      dataBits: config.dataBits,
+      stopBits: config.stopBits,
+      parity: config.parity,
       autoOpen: false,
     });
-    const messageBuffer = (await this.getPluginConfig()).messageBuffer;
-    this._server.on("data", async (value) => {
+    const messageBuffer = config.messageBuffer;
+    self._server.on("data", async (value) => {
       self._lastUse = new Date().getTime();
       const dataAsText = messageBuffer
         ? "buffer"
@@ -66,9 +68,13 @@ export class Service extends ServicesBase<
         true
       );
 
-      await self.emitEvent("onMessage", messageBuffer ? value : dataAsText);
+      await self.emitEventSpecific(
+        thisServerId,
+        "onMessage",
+        messageBuffer ? value : dataAsText
+      );
     });
-    this._server.on("error", async (err) => {
+    self._server.on("error", async (err) => {
       await self.log.error(err);
     });
   }
@@ -91,7 +97,7 @@ export class Service extends ServicesBase<
               await self.log.warn(
                 "Serial closed somehow! - We`re going to try reconnect!"
               );
-              return await this.openSerial();
+              return await self.openSerial();
             }
             await self.log.fatal("Serial closed somehow!");
           }, 30000);
