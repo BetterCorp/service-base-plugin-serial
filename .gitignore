@@ -3,3 +3,7 @@ node_modules
 /sec.config.json
 /src/plugins/service-syslog-to-file
 /log.log
+/node_modules
+/junit.xml
+/test-file-*
+/dist-clients
