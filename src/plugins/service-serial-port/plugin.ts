@@ -74,13 +74,27 @@ export class Service extends ServicesBase<
         messageBuffer ? value : dataAsText
       );
     });
+    self._server.on("drain", async () => {
+      await self.emitEventSpecific(thisServerId, "onPortEvent", "drain");
+      await self.log.info("Serial port drained.");
+    });
+    self._server.on("close", async () => {
+      await self.emitEventSpecific(thisServerId, "onPortEvent", "close");
+      await self.log.warn("Serial port closed.");
+    });
+    self._server.on("open", async () => {
+      await self.emitEventSpecific(thisServerId, "onPortEvent", "open");
+      await self.log.info("Serial port opened.");
+    });
     self._server.on("error", async (err) => {
+      await self.emitEventSpecific(thisServerId, "onPortEvent", "error", err);
       await self.log.error(err);
     });
   }
   private async openSerial(): Promise<void> {
     const self = this;
     if (self._server.isOpen) return;
+    const config = await this.getPluginConfig();
     return new Promise((resolve, reject) => {
       self._server.open(async (err) => {
         if (err) {
@@ -88,12 +102,12 @@ export class Service extends ServicesBase<
           reject(err);
           return;
         }
-        if ((await self.getPluginConfig()).autoConnect) {
+        if (config.autoConnect) {
           self._lastUserTimer = setInterval(async () => {
             if (self._server.isOpen) return;
 
             clearInterval(self._lastUserTimer!);
-            if ((await self.getPluginConfig()).autoReConnect) {
+            if (config.autoReConnect) {
               await self.log.warn(
                 "Serial closed somehow! - We`re going to try reconnect!"
               );
@@ -112,7 +126,6 @@ export class Service extends ServicesBase<
         }
         resolve();
       });
-      //this._server!.open();
     });
   }
   public override async run(): Promise<void> {

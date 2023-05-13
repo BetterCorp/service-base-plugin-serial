@@ -3,7 +3,11 @@ import {
   ServicesBase,
   ServicesClient,
 } from "@bettercorp/service-base";
-import { SerialEvents, SerialEmitAndReturnEvents } from "../../";
+import {
+  SerialEvents,
+  SerialEmitAndReturnEvents,
+  SerialPortEvent,
+} from "../../";
 import { Tools } from "@bettercorp/tools";
 
 export class serialPort extends ServicesClient<
@@ -25,6 +29,12 @@ export class serialPort extends ServicesClient<
   }): Promise<void> {
     await this._plugin.onEventSpecific(this._serverId, "onMessage", listener);
   }
+  async onPortEvent(listener: {
+    (event: SerialPortEvent, meta?: any): Promise<void>;
+  }): Promise<void> {
+    await this._plugin.onEventSpecific(this._serverId, "onPortEvent", listener);
+  }
+
   async writeMessage(data: Buffer | string): Promise<void> {
     await this._plugin.emitEventAndReturnSpecific(
       this._serverId,
