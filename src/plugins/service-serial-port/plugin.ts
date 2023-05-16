@@ -63,11 +63,14 @@ export class Service extends ServicesBase<
     });
     const messageBuffer = config.messageBuffer;
     self._server.on("data", async (value) => {
+      await self.log.debug("Received data from {SP}", {
+        SP: config.port,
+      });
       self._lastUse = new Date().getTime();
       const dataAsText = messageBuffer
         ? "buffer"
         : Buffer.from(value).toString("utf-8").trim();
-      self.log.debug(
+      await self.log.debug(
         "Read: {value}",
         {
           value: dataAsText,
